@@ -27,6 +27,7 @@ CONTENTS                                                     *extend-contents*
     1.6 Editing in the prompt line .......... |extend-usage-prompt-edit|
     1.7 Modifying the range dynamically ..... |extend-usage-modify-range|
     1.8 Moving the window viewport .......... |extend-usage-modify-viewport|
+    1.9 Cycling operation and scope ......... |extend-usage-operation-scope|
     2. Mappings ............................. |extend-mappings|
     3. Configuration ........................ |extend-configuration|
     3.1 Highlight colors .................... |extend-configuration-colors|
@@ -359,14 +360,14 @@ Changing the matching mode                         *extend-usage-matching-mode*
 The text inside "[]" at the start of the input prompts of this plugin shows
 all status flags that interfere in matching of patterns like follows:
 
-    [ s | NCW | \m | \c | ^ ]
-           ^    ^    ^
-           |    |    |
-           |    |    +-- Sensitiveness
-           |    |
-           |    +-- Magicness
-           |
-           +-- Complete words / Non complete words
+    [ 1,2s | NCW | \m | \c | ^ ]
+              ^    ^    ^
+              |    |    |
+              |    |    +-- Sensitiveness
+              |    |
+              |    +-- Magicness
+              |
+              +-- Complete words / Non complete words
 
 The following keys can be used to modify these flags:
 
@@ -492,10 +493,10 @@ moved from one side (above or below) called the "selected end". To see which
 end is currently selected you can see the fourth section in the status flags
 from the prompt:
 
-    [ s | NCM | \C | \v | ^ ]
-                        +-+-+
-                          |
-                          +--- Indicates the selected end. If the symbol is
+    [ 1,2s | NCM | \C | \v | ^ ]
+                           +-+-+
+                             |
+                             + Indicates the selected end. If the symbol is
                                "^" the selected end is the first and if the
                                symbol is "v" the selected end is the last line
                                of range.
@@ -534,6 +535,55 @@ The following actions move the viewport while in ReadLine() prompt:
       |                                                                  |
       |    Internal function: EXtend#input#MoveViewportPageDown          |
       +-------------------------------+----------------------------------+
+
+Cycling operation and scope                     *extend-usage-operation-scope*
+---------------
+
+The operators from this plugin can be disabled by parts. One of the reasons to
+do this is that just a couple of operators can behave like all the others with
+just some extra keystrokes.
+
+For example, you can cycle between the commands :substitute, :global and
+:vglobal and can change the operation to operate on different scopes. The
+actions to do this are:
+
+      | Action                                         | Default mappings|
+      +------------------------------------------------+-----------------+
+      | Rotate scope:                                  | <C-/>           |
+      | Cycles between "line range", "whole buffer",   |                 |
+      | "argument list", "window list" and "buffer     |                 |
+      | list".                                         |                 |
+      |                                                                  |
+      |    Internal function: EXtend#RotateOperationScope                |
+      +------------------------------------------------+-----------------+
+      | Rotate command:                                | <C-\>           |
+      | Cycles between substitute, global and vglobal  |                 |
+      | to be applied in the scope.                    |                 |
+      |                                                                  |
+      |    Internal function: EXtend#RotateCommand                       |
+      +------------------------------------------------+-----------------+
+
+These two options are shown together in the first section of the status
+flags:
+
+    [ bufdo %g | NCM | \C | \v | ^ ]
+      +--+--+^
+         |   |
+         |   |
+         |   |
+         |   +---- Command
+         |
+         +--- Scope
+
+The strings used for representing the scope are depending on the current value
+are:
+    - line range    :  The start and end line are shown
+    - whole buffer  :  "%" is shown
+    - argument list :  "argdo %" is shown
+    - window list   :  "windo %" is shown
+    - buffer list   :  "bufdo %" is shown
+
+As for the command, its starting letter (s, g, or v) is used
 
 ==============================================================================
 2  Mappings                                                  *extend-mappings*
@@ -753,6 +803,72 @@ you want to modify the commands: One new map can modify several.
 Readline() key handlers                        *extend-configuration-readline*
 ---------------
 
+The variable g:EXtend_key_handlers a dictionary of keystrokes-funcrefs, where
+the funcref represents the actions performed after the keystroke is pressed.
+The functions that can be used are all those listed in the tables all across
+this helpfile.
+
+For example, if you want to define <C-q> to move the viewport up and <C-t> to
+move it down you can do:
+
+    let g:EXtend_key_handlers = {
+    \   "\<C-q>": function('EXtend#input#MoveViewportUp'),
+    \   "\<C-t>": function('EXtend#input#MoveViewportDown')
+    \}
+
+Only single char (single signal actually) asociations can be done, so
+"\<A-x>", "\<C-a>", "\<F9>", "x" or "\<Home>" are valid associations but
+"\<C-x>\<C-y>", "command", "\<C-w>M" and "xyz" are not.
+
+There is also a special function: 'EXtend#input#Nothing' that represents
+the null action. It can be used to disable the behaviour of some key.
+
+If none of the predefined functions do what you want, you can always define
+your own function, which must have a single dictionary parameter with the
+following members:
+    - prompt: The string that is shown before the input string
+    - char: The string representation of the key that the function was called
+      after
+    - string: The string that has been read so far
+    - cursor_pos: Single integer that represents the position of the cursor
+      over the input string. Its value can go from 0 to strlen(string)
+      (inclusive)
+    - buffer_pos: Position of the buffer cursor. It is a list of with the four
+      numbers: [bufnum, lnum, col, off]. See |getpos()| for more info about
+      the meaning of these numbers.
+    - exit_loop: Integer (boolean value) that controls the loop of reading.
+      Set to 1 to finish the input and return the string.
+
+In case you modify the buffer_pos member, you have to call the function
+EXtend#input#UpdatePos() with the new position as argument or the cursor will
+actually remain in the same place. The rest of members can be modified without
+further problems except for prompt that should not be modified at all.
+
+As an example, here is a function that moves the position to the previous
+uppercase letter, useful for moving around class names like:
+ClassWithAttributesAndMethos or AnotherVagueClassName.
+
+    function! MovePreviousUppercase(data)
+        let cur_pos = a:data.cursor_pos
+        let str = a:data.string
+
+        if cur_pos == 0
+            return
+        endif
+
+        let cur_pos -= 1
+        while cur_pos > 0 && str[cur_pos] =~# '\U'
+            let cur_pos -= 1  " Decrement the position to go backwards
+        endwhile
+
+        let a:data.cursor_pos = l:cur_pos  " Sets the new cursor pos
+    endfunction
+
+
+You can associate the function to <C-b> like follows:
+
+    let g:EXtend_key_handlers["\<C-b>"] = function('MovePreviousUppercase')
+
 ==============================================================================
 4  Bug reports and contributing                            *extend-bugreports*
 
@@ -780,7 +896,7 @@ doubt into contacting me so I can give mention to your plugin.
           enable customization
         - Workaround to make meta keys work in vim. Still looking troublesome
           in some cases so its better to use neovim
-        - The operations that default as WORD has ben deleted as mostly
+        - The operations that default as WORD has been deleted as mostly
           unnecessary and because they can be easily emulated with the normal
           operators.
         - Now the commands :global and :vglobal can also be used. They come
@@ -792,9 +908,9 @@ doubt into contacting me so I can give mention to your plugin.
           * Argument list
           * Window list
           * Buffer
-        - The new scope flag also has new operators "entire" that defaults the
-          scope to "All current buffer". The rest can be reach by cycling
-          through a specific keystroke.
+        - The new scope flag also has brings operators "entire" that defaults
+          the scope to "All current buffer". The rest can be reached by
+          cycling through a specific keystroke.
         - New variables to configure the highlight of elements
 
     2018-08-30: v0.1

@@ -222,56 +222,56 @@ function! EXtend#input#DeleteToEnd(dt) abort
     endif
 endfunction
 
-" Moving the pos inside the text
-function! s:UpdatePos(new_pos)
+" Moving the buffer_pos inside the text
+function! EXtend#input#UpdatePos(new_pos)
     call setpos('.', a:new_pos)
     call EXtend#matches#PointHighlight('cursor_match',
                 \ g:EXtend_highlight_position, a:new_pos[1], a:new_pos[2])
 endfunction
 
 function! EXtend#input#MovePosLeft(dt) abort
-    if a:dt.pos[2] > 1
-        if a:dt.pos[2] >= col('$')
-            let a:dt.pos[2] = col('$') - 1
+    if a:dt.buffer_pos[2] > 1
+        if a:dt.buffer_pos[2] >= col('$')
+            let a:dt.buffer_pos[2] = col('$') - 1
         else
-            let a:dt.pos[2] -= 1
+            let a:dt.buffer_pos[2] -= 1
         endif
 
-        call s:UpdatePos(a:dt.pos)
+        call EXtend#input#UpdatePos(a:dt.buffer_pos)
     endif
 endfunction
 
 function! EXtend#input#MovePosRight(dt) abort
-    if a:dt.pos[2] < col('$')
-        let a:dt.pos[2] += 1
-        call s:UpdatePos(a:dt.pos)
+    if a:dt.buffer_pos[2] < col('$')
+        let a:dt.buffer_pos[2] += 1
+        call EXtend#input#UpdatePos(a:dt.buffer_pos)
     endif
 endfunction
 
 function! EXtend#input#MovePosUp(dt) abort
-    if a:dt.pos[1] > 1
-        let a:dt.pos[1] -= 1
+    if a:dt.buffer_pos[1] > 1
+        let a:dt.buffer_pos[1] -= 1
 
-        call s:UpdatePos(a:dt.pos)
+        call EXtend#input#UpdatePos(a:dt.buffer_pos)
     endif
 endfunction
 
 function! EXtend#input#MovePosDown(dt) abort
-    if a:dt.pos[1] < line('$')
-        let a:dt.pos[1] += 1
+    if a:dt.buffer_pos[1] < line('$')
+        let a:dt.buffer_pos[1] += 1
 
-        call s:UpdatePos(a:dt.pos)
+        call EXtend#input#UpdatePos(a:dt.buffer_pos)
     endif
 endfunction
 
 function! EXtend#input#MovePosToStart(dt) abort
-    let a:dt.pos[2] = 1
-    call s:UpdatePos(a:dt.pos)
+    let a:dt.buffer_pos[2] = 1
+    call EXtend#input#UpdatePos(a:dt.buffer_pos)
 endfunction
 
 function! EXtend#input#MovePosToEnd(dt) abort
-    let a:dt.pos[2] = col('$')
-    call s:UpdatePos(a:dt.pos)
+    let a:dt.buffer_pos[2] = col('$')
+    call EXtend#input#UpdatePos(a:dt.buffer_pos)
 endfunction
 
 " Moving viewport
@@ -372,11 +372,11 @@ function! EXtend#input#ReadLine(prompt, key_handlers) abort
     \   'char': '',
     \   'string': '',
     \   'cursor_pos': 0,
-    \   'pos': getpos('.'),
+    \   'buffer_pos': getpos('.'),
     \   'exit_loop': 0
     \}
 
-    call s:UpdatePos(l:dt.pos)
+    call EXtend#input#UpdatePos(l:dt.buffer_pos)
     while !l:dt.exit_loop
         echon l:dt.prompt
         call s:PrintCurrentString(l:dt)
