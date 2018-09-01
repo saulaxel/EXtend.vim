@@ -1,6 +1,6 @@
 " ==============================================================================
-" File: autoload/registers.vim
-" Description: Get the differents expansions of <C-r>{x} as is pressed in normal
+" File: autoload/EXtend/registers.vim
+" Description: Get the different expansions of <C-r>{x} as is pressed in command
 "              mode
 " Author: Saul Axel <saulaxel.50@gmail.com>
 " ==============================================================================
@@ -12,16 +12,16 @@ let s:object_expansion_words = {
 \   "\<C-p>" : '<cfile>'
 \}
 
-function! sub_op#registers#GetRegisterOrCompletion() abort
-    let l:reg = sub_op#input#ReadChar()
+function! EXtend#registers#GetRegisterOrCompletion() abort
+    let l:reg = EXtend#input#ReadChar()
 
     if l:reg ==# "\<C-r>"
-        return sub_op#registers#GetRegisterOrCompletion()
+        return EXtend#registers#GetRegisterOrCompletion()
     endif
 
     if l:reg ==# '='
         try
-            return eval(sub_op#input#ReadLine('=', {}))
+            return eval(EXtend#input#ReadLine('=', {}))
         catch
             echohl ErrorMsg
             echo 'Expression error'

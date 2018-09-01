@@ -1,33 +1,92 @@
 " ==============================================================================
-" File: autoload/input.vim
+" File: autoload/EXtend/input.vim
 " Description: Utilities for retrieving data from the user.
 " Author: Saul Axel <saulaxel.50@gmail.com>
 " ==============================================================================
 
 " =====[ReadChar and its auxiliary]=====
-function! sub_op#input#ReadChar() abort
+function! s:FixMetaKeys() abort
+    let l:char = getchar(0)
+    if l:char
+        return eval('"\<M-' . nr2char(l:char) . '>"')
+    else
+        return "\<Esc>"
+    endif
+endfunction
+
+function! EXtend#input#ReadChar() abort
     try
         let l:char = getchar()
 
         if type(l:char) == type(0)
             let l:char = nr2char(l:char)
         endif
-
     catch /^Vim:Interrupt$/
         let l:char = "\<C-c>"
     endtry
+
+    if !has('nvim') && l:char ==# "\<Esc>"
+        let l:char = s:FixMetaKeys()
+    endif
 
     return l:char
 endfunction
 
 " =====[Functions to control ReadLine]=====
 " Moving the cursor
-function! sub_op#input#MoveCursorLeft(dt) abort
-    let a:dt.cursor_pos = max([0, a:dt.cursor_pos - 1])
+function! EXtend#input#Utf8CharsToStart(str, cur)
+    let l:cur = a:cur
+    let l:num_chars = 0
+    while l:cur > 0
+        let l:char_code = char2nr(a:str[l:cur])
+
+        if l:char_code < 128 || l:char_code >= 192
+            break
+        endif
+
+        let l:cur -= 1
+        let l:num_chars += 1
+    endwhile
+
+    return l:num_chars
 endfunction
 
-function! sub_op#input#MoveCursorRight(dt) abort
-    let a:dt.cursor_pos = min([strlen(a:dt.string), a:dt.cursor_pos + 1])
+function! EXtend#input#Utf8CharLength(char)
+    let l:char_code = char2nr(a:char)
+
+    if l:char_code >= 240
+        return 4
+    elseif l:char_code >= 224
+        return 3
+    elseif l:char_code >= 192
+        return 2
+    else
+        return 1
+    endif
+endfunction
+
+function! EXtend#input#MoveCursorLeft(dt) abort
+    let l:str = a:dt.string
+
+    if a:dt.cursor_pos - 1 <= 0
+        let a:dt.cursor_pos = 0
+        return
+    endif
+
+    let a:dt.cursor_pos -= 1
+    let a:dt.cursor_pos -=  EXtend#input#Utf8CharsToStart(l:str, a:dt.cursor_pos)
+endfunction
+
+function! EXtend#input#MoveCursorRight(dt) abort
+    let l:str  = a:dt.string
+    let l:slen = strlen(l:str)
+
+    if a:dt.cursor_pos + 1 >= l:slen
+        let a:dt.cursor_pos = l:slen
+        return
+    endif
+
+    let a:dt.cursor_pos += EXtend#input#Utf8CharLength(l:str[a:dt.cursor_pos])
 endfunction
 
 function! s:PreviousWordIndex(text, curr_index) abort
@@ -63,11 +122,11 @@ function! s:NextWordIndex(text, curr_index) abort
     return l:index
 endfunction
 
-function! sub_op#input#MoveCursorWORDLeft(dt) abort
+function! EXtend#input#MoveCursorWORDLeft(dt) abort
     let a:dt.cursor_pos = s:PreviousWordIndex(a:dt.string, a:dt.cursor_pos)
 endfunction
 
-function! sub_op#input#MoveCursorWORDRight(dt) abort
+function! EXtend#input#MoveCursorWORDRight(dt) abort
     let l:new_pos = s:NextWordIndex(a:dt.string, a:dt.cursor_pos)
     if l:new_pos == a:dt.cursor_pos
         let a:dt.cursor_pos += 1
@@ -76,35 +135,39 @@ function! sub_op#input#MoveCursorWORDRight(dt) abort
     elseif l:new_pos > a:dt.cursor_pos
         let a:dt.cursor_pos = l:new_pos
     endif
+
+    let a:dt.cursor_pos -= EXtend#input#Utf8CharsToStart(a:dt.string, a:dt.cursor_pos)
 endfunction
 
-function! sub_op#input#MoveCursorToStart(dt) abort
+function! EXtend#input#MoveCursorToStart(dt) abort
     let a:dt.cursor_pos = 0
 endfunction
 
-function! sub_op#input#MoveCursorToEnd(dt) abort
+function! EXtend#input#MoveCursorToEnd(dt) abort
     let a:dt.cursor_pos = strlen(a:dt.string)
 endfunction
 
 " Deleting
-function! sub_op#input#DeleteChar(dt) abort
+function! EXtend#input#DeleteChar(dt) abort
     if a:dt.cursor_pos ==# 0
         return
     endif
 
     let l:str = a:dt.string
-    let l:cur = a:dt.cursor_pos
 
-    if l:cur ==# 1
-        let a:dt.string = l:str[1 : ]
+    call EXtend#input#MoveCursorLeft(a:dt)
+
+    let l:cur  = a:dt.cursor_pos
+    let l:clen = EXtend#input#Utf8CharLength(l:str[l:cur])
+
+    if l:cur ==# 0
+        let a:dt.string = l:str[l:clen : ]
     else
-        let a:dt.string = l:str[ : l:cur - 2] . l:str[l:cur : ]
+        let a:dt.string = l:str[ : l:cur - 1] . l:str[l:cur + l:clen : ]
     endif
-
-    let a:dt.cursor_pos -= 1
 endfunction
 
-function! sub_op#input#InsertAtCurrentPosition(dt) abort
+function! EXtend#input#InsertAtCurrentPosition(dt) abort
     let l:str = a:dt.string
     let l:cur = a:dt.cursor_pos
 
@@ -116,10 +179,10 @@ function! sub_op#input#InsertAtCurrentPosition(dt) abort
         let a:dt.string = l:str[ : l:cur - 1] . a:dt.char . l:str[l:cur : ]
     endif
 
-    let a:dt.cursor_pos += 1
+    let a:dt.cursor_pos += strlen(a:dt.char)
 endfunction
 
-function! sub_op#input#DeleteWORD(dt) abort
+function! EXtend#input#DeleteWORD(dt) abort
     if a:dt.cursor_pos == 0
         return
     endif
@@ -135,7 +198,7 @@ function! sub_op#input#DeleteWORD(dt) abort
     let a:dt.cursor_pos = l:cut_index
 endfunction
 
-function! sub_op#input#DeleteToStart(dt) abort
+function! EXtend#input#DeleteToStart(dt) abort
     if a:dt.cursor_pos == 0
         return
     endif
@@ -144,7 +207,7 @@ function! sub_op#input#DeleteToStart(dt) abort
     let a:dt.cursor_pos = 0
 endfunction
 
-function! sub_op#input#DeleteToEnd(dt) abort
+function! EXtend#input#DeleteToEnd(dt) abort
     let l:str = a:dt.string
     let l:cur = a:dt.cursor_pos
     if l:cur == strlen(l:str)
@@ -162,11 +225,11 @@ endfunction
 " Moving the pos inside the text
 function! s:UpdatePos(new_pos)
     call setpos('.', a:new_pos)
-    call sub_op#matches#PointHighlight('cursor_match', 'Cursor',
-                                         \ a:new_pos[1], a:new_pos[2])
+    call EXtend#matches#PointHighlight('cursor_match',
+                \ g:EXtend_highlight_position, a:new_pos[1], a:new_pos[2])
 endfunction
 
-function! sub_op#input#MovePosLeft(dt) abort
+function! EXtend#input#MovePosLeft(dt) abort
     if a:dt.pos[2] > 1
         if a:dt.pos[2] >= col('$')
             let a:dt.pos[2] = col('$') - 1
@@ -178,14 +241,14 @@ function! sub_op#input#MovePosLeft(dt) abort
     endif
 endfunction
 
-function! sub_op#input#MovePosRight(dt) abort
+function! EXtend#input#MovePosRight(dt) abort
     if a:dt.pos[2] < col('$')
         let a:dt.pos[2] += 1
         call s:UpdatePos(a:dt.pos)
     endif
 endfunction
 
-function! sub_op#input#MovePosUp(dt) abort
+function! EXtend#input#MovePosUp(dt) abort
     if a:dt.pos[1] > 1
         let a:dt.pos[1] -= 1
 
@@ -193,7 +256,7 @@ function! sub_op#input#MovePosUp(dt) abort
     endif
 endfunction
 
-function! sub_op#input#MovePosDown(dt) abort
+function! EXtend#input#MovePosDown(dt) abort
     if a:dt.pos[1] < line('$')
         let a:dt.pos[1] += 1
 
@@ -201,44 +264,44 @@ function! sub_op#input#MovePosDown(dt) abort
     endif
 endfunction
 
-function! sub_op#input#MovePosToStart(dt) abort
+function! EXtend#input#MovePosToStart(dt) abort
     let a:dt.pos[2] = 1
     call s:UpdatePos(a:dt.pos)
 endfunction
 
-function! sub_op#input#MovePosToEnd(dt) abort
+function! EXtend#input#MovePosToEnd(dt) abort
     let a:dt.pos[2] = col('$')
     call s:UpdatePos(a:dt.pos)
 endfunction
 
 " Moving viewport
-function! sub_op#input#ViewPortDown(dt) abort
+function! EXtend#input#ViewPortDown(dt) abort
     execute "normal! \<C-e>"
 endfunction
 
-function! sub_op#input#ViewPortUp(dt) abort
+function! EXtend#input#ViewPortUp(dt) abort
     execute "normal! \<C-y>"
 endfunction
 
-function! sub_op#input#ViewPortHalfPageDown(dt) abort
+function! EXtend#input#ViewPortHalfPageDown(dt) abort
     execute "normal! \<C-u>"
 endfunction
 
-function! sub_op#input#ViewPortHalfPageUp(dt) abort
+function! EXtend#input#ViewPortHalfPageUp(dt) abort
     execute "normal! \<C-d>"
 endfunction
 
-function! sub_op#input#ViewPortPageDown(dt) abort
+function! EXtend#input#ViewPortPageDown(dt) abort
     execute "normal! \<C-f>"
 endfunction
 
-function! sub_op#input#ViewPortPageUp(dt) abort
+function! EXtend#input#ViewPortPageUp(dt) abort
     execute "normal! \<C-b>"
 endfunction
 
 " Others
-function! sub_op#input#CompleteRegister(dt) abort
-    let l:added_word     = sub_op#registers#GetRegisterOrCompletion()
+function! EXtend#input#CompleteRegister(dt) abort
+    let l:added_word     = EXtend#registers#GetRegisterOrCompletion()
     let l:added_word_len = strlen(l:added_word)
 
     let l:str = a:dt.string
@@ -256,11 +319,11 @@ function! sub_op#input#CompleteRegister(dt) abort
     endif
 endfunction
 
-function! sub_op#input#ExitLoop(dt) abort
+function! EXtend#input#ExitLoop(dt) abort
     let a:dt.exit_loop = 1
 endfunction
 
-function! sub_op#input#Nothing(dt) abort
+function! EXtend#input#Nothing(dt) abort
     return
 endfunction
 
@@ -273,36 +336,37 @@ endfunction
 
 let s:default_key_handlers = {}
 " Movement operations
-call s:AssignKeys(["\<Left>", "\<C-b>"], 'sub_op#input#MoveCursorLeft')
-call s:AssignKeys(["\<Right>", "\<C-f>"], 'sub_op#input#MoveCursorRight')
-call s:AssignKeys(["\<C-Left>", "\<M-b>"], 'sub_op#input#MoveCursorWORDLeft')
-call s:AssignKeys(["\<C-Right>", "\<M-f>"], 'sub_op#input#MoveCursorWORDRight')
-call s:AssignKeys(["\<Home>", "\<C-a>"], 'sub_op#input#MoveCursorToStart')
-call s:AssignKeys(["\<End>", "\<C-e>"], 'sub_op#input#MoveCursorToEnd')
+" Free keys: ^Q^Y^D^L^Z^X^V^\(^_ - ^/)
+call s:AssignKeys(["\<Left>", "\<C-b>"], 'EXtend#input#MoveCursorLeft')
+call s:AssignKeys(["\<Right>", "\<C-f>"], 'EXtend#input#MoveCursorRight')
+call s:AssignKeys(["\<C-Left>", "\<M-b>"], 'EXtend#input#MoveCursorWORDLeft')
+call s:AssignKeys(["\<C-Right>", "\<M-f>"], 'EXtend#input#MoveCursorWORDRight')
+call s:AssignKeys(["\<Home>", "\<C-a>"], 'EXtend#input#MoveCursorToStart')
+call s:AssignKeys(["\<End>", "\<C-e>"], 'EXtend#input#MoveCursorToEnd')
 " Delete operations
-call s:AssignKeys(["\<BS>", "\<C-h>"], 'sub_op#input#DeleteChar')
-call s:AssignKeys(["\<C-BS>", "\<C-w>"], 'sub_op#input#DeleteWORD')
-call s:AssignKeys(["\<C-u>"], 'sub_op#input#DeleteToStart')
-call s:AssignKeys(["\<C-s>"], 'sub_op#input#DeleteToEnd')
+call s:AssignKeys(["\<BS>", "\<C-h>"], 'EXtend#input#DeleteChar')
+call s:AssignKeys(["\<C-BS>", "\<C-w>"], 'EXtend#input#DeleteWORD')
+call s:AssignKeys(["\<C-u>"], 'EXtend#input#DeleteToStart')
+call s:AssignKeys(["\<C-k>"], 'EXtend#input#DeleteToEnd')
 " Moving the point
-call s:AssignKeys(["\<M-Left>", "\<M-h>"], 'sub_op#input#MovePosLeft')
-call s:AssignKeys(["\<M-Right>", "\<M-l>"], 'sub_op#input#MovePosRight')
-call s:AssignKeys(["\<M-Up>", "\<M-k>"], 'sub_op#input#MovePosUp')
-call s:AssignKeys(["\<M-Down>", "\<M-j>"], 'sub_op#input#MovePosDown')
-call s:AssignKeys(["\<M-a>", "\<M-A>"], 'sub_op#input#MovePosToStart')
-call s:AssignKeys(["\<M-e>", "\<M-E>"], 'sub_op#input#MovePosToEnd')
+call s:AssignKeys(["\<M-Left>", "\<M-h>"], 'EXtend#input#MovePosLeft')
+call s:AssignKeys(["\<M-Right>", "\<M-l>"], 'EXtend#input#MovePosRight')
+call s:AssignKeys(["\<M-Up>", "\<M-k>"], 'EXtend#input#MovePosUp')
+call s:AssignKeys(["\<M-Down>", "\<M-j>"], 'EXtend#input#MovePosDown')
+call s:AssignKeys(["\<M-a>", "\<M-A>"], 'EXtend#input#MovePosToStart')
+call s:AssignKeys(["\<M-e>", "\<M-E>"], 'EXtend#input#MovePosToEnd')
 " Moving the viewport
-call s:AssignKeys(["\<M-u>"], 'sub_op#input#ViewPortUp')
-call s:AssignKeys(["\<M-d>"], 'sub_op#input#ViewPortDown')
-call s:AssignKeys(["\<M-U>"], 'sub_op#input#ViewPortHalfPageUp')
-call s:AssignKeys(["\<M-D>"], 'sub_op#input#ViewPortHalfPageDown')
-call s:AssignKeys(["\<PageDown>", "\<M-v>"], 'sub_op#input#ViewPortPageDown')
-call s:AssignKeys(["\<PageUp>", "\<M-V>"], 'sub_op#input#ViewPortPageUp')
+call s:AssignKeys(["\<M-u>"], 'EXtend#input#ViewPortUp')
+call s:AssignKeys(["\<M-d>"], 'EXtend#input#ViewPortDown')
+call s:AssignKeys(["\<M-U>"], 'EXtend#input#ViewPortHalfPageUp')
+call s:AssignKeys(["\<M-D>"], 'EXtend#input#ViewPortHalfPageDown')
+call s:AssignKeys(["\<PageDown>", "\<M-v>"], 'EXtend#input#ViewPortPageDown')
+call s:AssignKeys(["\<PageUp>", "\<M-V>"], 'EXtend#input#ViewPortPageUp')
 " Others
-call s:AssignKeys(["\<C-r>"], 'sub_op#input#CompleteRegister')
-call s:AssignKeys(["\<CR>", "\<Esc>", "\<C-c>", "\<NL>"], 'sub_op#input#ExitLoop')
+call s:AssignKeys(["\<C-r>"], 'EXtend#input#CompleteRegister')
+call s:AssignKeys(["\<CR>", "\<Esc>", "\<C-c>", "\<NL>"], 'EXtend#input#ExitLoop')
 
-function! sub_op#input#ReadLine(prompt, key_handlers) abort
+function! EXtend#input#ReadLine(prompt, key_handlers) abort
     let l:dt = {
     \   'prompt': a:prompt,
     \   'char': '',
@@ -318,16 +382,17 @@ function! sub_op#input#ReadLine(prompt, key_handlers) abort
         call s:PrintCurrentString(l:dt)
         redraw
 
-        let l:dt.char = sub_op#input#ReadChar()
+        let l:dt.char = EXtend#input#ReadChar()
 
         let l:c = l:dt.char
+
         if has_key(a:key_handlers, l:c)
             call a:key_handlers[l:c](l:dt)
         elseif has_key(s:default_key_handlers, l:c)
             call s:default_key_handlers[l:c](l:dt)
         else
             " Direct writing
-            call sub_op#input#InsertAtCurrentPosition(l:dt)
+            call EXtend#input#InsertAtCurrentPosition(l:dt)
         endif
         call s:ExecuteEvent(l:dt, a:key_handlers, 'afterOperation')
     endwhile
@@ -339,27 +404,28 @@ function! s:PrintCurrentString(dt) abort
     let l:cur  = a:dt.cursor_pos
     let l:str  = a:dt.string
     let l:slen = strlen(l:str)
+    let l:clen = EXtend#input#Utf8CharLength(l:str[l:cur])
 
     if l:cur == l:slen
         echon l:str
-        echohl CursorColumn
+        execute 'echohl' g:EXtend_highlight_cursor
         echon ' '
         echohl Normal
-    elseif l:slen == 1
-        echohl CursorColumn
+    elseif l:slen == l:clen
+        execute 'echohl' g:EXtend_highlight_cursor
         echon l:str
         echohl Normal
     elseif l:cur == 0
-        echohl CursorColumn
-        echon l:str[0]
+        execute 'echohl' g:EXtend_highlight_cursor
+        echon l:str[0 : l:clen - 1]
         echohl Normal
-        echon l:str[1 : ]
+        echon l:str[l:clen : ]
     else
         echon l:str[ : l:cur - 1]
-        echohl CursorColumn
-        echon l:str[l:cur]
+        execute 'echohl' g:EXtend_highlight_cursor
+        echon l:str[l:cur : l:cur + l:clen - 1]
         echohl Normal
-        echon l:str[l:cur + 1 : ]
+        echon l:str[l:cur + l:clen : ]
     endif
 endfunction
 
