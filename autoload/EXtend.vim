@@ -174,8 +174,8 @@ let s:key_handlers = {
 \   'afterOperation': ''
 \}
 
-let s:key_handlers = extend(s:key_handlers, g:EXtend_key_handlers)
-" =====[Main plugin function]===========
+let s:key_handlers = extend(s:key_handlers, g:EXtend_key_handlers, 'force')
+" =====[Main plugin functionality]===========
 function! s:RestoreHighlightState(old_hlsearch)
     let &hlsearch = a:old_hlsearch
     call EXtend#matches#DeleteAllHighlights()
@@ -204,7 +204,7 @@ function! EXtend#ExCommandInRange(command, initial_range, ...) abort
     let s:magic_mode     = &magic ? 2 : 1
 
     call s:HighlightSelection()
-    call EXtend#pos#Restore()
+    call EXtend#winstate#Restore()
 
     if empty(s:pattern)
         let s:key_handlers.afterOperation = function('s:OnPatternChange')

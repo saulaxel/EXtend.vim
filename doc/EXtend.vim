@@ -888,6 +888,12 @@ doubt into contacting me so I can give mention to your plugin.
 ==============================================================================
 5  Changelog                                                *extend-changelog*
 
+    2018-09-02: v0.2.1
+        - Delete remaining log message with a nonsensical text
+        - Now the entire window layout is restored instead of just the
+          cursor position
+        - Add a few example to the readme
+
     2018-09-01: v0.2
         - New banner and complete documentation
         - More options to configure

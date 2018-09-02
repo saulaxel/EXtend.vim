@@ -36,110 +36,110 @@ let g:EXtend_highlight_pattern  = get(g:, 'EXtend_highlight_pattern', 'IncSearch
 
 " =====[ Plugs ]=====
 nnoremap <silent> <Plug>SubstituteNormal
-                \ :<C-u>call EXtend#pos#Save()
+                \ :<C-u>call EXtend#winstate#Save()
                 \ <bar>set opfunc=<SID>OperatorSubstitute<CR>g@
 xnoremap <silent> <Plug>SubstituteVisual
-                \ <Esc>:call EXtend#pos#Save()<CR>
+                \ <Esc>:call EXtend#winstate#Save()<CR>
                 \ gv:<C-u>call <SID>OperatorSubstitute('selection', 1)<CR>
 nnoremap <silent> <Plug>SubstituteOneLine
-                \ :<C-u>call EXtend#pos#Save()
+                \ :<C-u>call EXtend#winstate#Save()
                 \ <bar>call <SID>OperatorSubstitute('singleline', 1)<CR>
 nnoremap <silent> <Plug>SubstituteEntire
-                \ :<C-u>call EXtend#pos#Save()
+                \ :<C-u>call EXtend#winstate#Save()
                 \ <bar>call <SID>OperatorSubstituteEntire()<CR>
 
 nnoremap <silent> <Plug>SubstituteWordNormal
-                \ :<C-u>call EXtend#pos#Save()
+                \ :<C-u>call EXtend#winstate#Save()
                 \ <bar>set opfunc=<SID>OperatorSubstituteWord<CR>g@
 xnoremap <silent> <Plug>SubstituteWordVisual
-                \ <Esc>:call EXtend#pos#Save()<CR>
+                \ <Esc>:call EXtend#winstate#Save()<CR>
                 \ gv:<C-u>call <SID>OperatorSubstituteWord('selection', 1)<CR>
 nnoremap <silent> <Plug>SubstituteWordOneLine
-                \ :<C-u>call EXtend#pos#Save()
+                \ :<C-u>call EXtend#winstate#Save()
                 \ <bar>call <SID>OperatorSubstituteWord('singleline', 1)<CR>
 nnoremap <silent> <Plug>SubstituteWordEntire
-                \ :<C-u>call EXtend#pos#Save()
+                \ :<C-u>call EXtend#winstate#Save()
                 \ <bar>call <SID>OperatorSubstituteWordEntire()<CR>
 
 xnoremap <silent> <Plug>SubstituteFromSelection
                 \ :<C-u>let g:EXtend_reg_save=@"<CR>
-                \ :call EXtend#pos#Save()<CR>
+                \ :call EXtend#winstate#Save()<CR>
                 \ gvy:<C-u>set opfunc=<SID>OperatorSubstituteFromSelection<CR>g@
 xnoremap <silent> <Plug>SubstituteFromSelectionEntire
                 \ :<C-u>let g:EXtend_reg_save=@"<CR>
-                \ :call EXtend#pos#Save()<CR>
+                \ :call EXtend#winstate#Save()<CR>
                 \ gvy:<C-u>call <SID>OperatorSubstituteFromSelectionEntire()<CR>
 
 
 nnoremap <silent> <Plug>GlobalNormal
-                \ :<C-u>call EXtend#pos#Save()
+                \ :<C-u>call EXtend#winstate#Save()
                 \ <bar>set opfunc=<SID>OperatorGlobal<CR>g@
 xnoremap <silent> <Plug>GlobalVisual
-                \ <Esc>:call EXtend#pos#Save()<Esc>
+                \ <Esc>:call EXtend#winstate#Save()<Esc>
                 \ gv:<C-u>call <SID>OperatorGlobal('selection', 1)<CR>
 nnoremap <silent> <Plug>GlobalOneLine
-                \ :<C-u>call EXtend#pos#Save()
+                \ :<C-u>call EXtend#winstate#Save()
                 \ <bar>call <SID>OperatorGlobal('singleline', 1)<CR>
 nnoremap <silent> <Plug>GlobalEntire
-                \ :<C-u>call EXtend#pos#Save()
+                \ :<C-u>call EXtend#winstate#Save()
                 \ <bar>call <SID>OperatorGlobalEntire()<CR>
 
 nnoremap <silent> <Plug>GlobalWordNormal
-                \ :<C-u>call EXtend#pos#Save()
+                \ :<C-u>call EXtend#winstate#Save()
                 \ <bar>set opfunc=<SID>OperatorGlobalWord<CR>g@
 xnoremap <silent> <Plug>GlobalWordVisual
-                \ <Esc>:call EXtend#pos#Save()<CR>
+                \ <Esc>:call EXtend#winstate#Save()<CR>
                 \ gv:<C-u>call <SID>OperatorGlobalWord('selection', 1)<CR>
 nnoremap <silent> <Plug>GlobalWordOneLine
-                \ :<C-u>call EXtend#pos#Save()
+                \ :<C-u>call EXtend#winstate#Save()
                 \ <bar>call <SID>OperatorGlobalWord('singleline', 1)<CR>
 nnoremap <silent> <Plug>GlobalWordEntire
-                \ :<C-u>call EXtend#pos#Save()
+                \ :<C-u>call EXtend#winstate#Save()
                 \ <bar>call <SID>OperatorGlobalWordEntire()<CR>
 
 xnoremap <silent> <Plug>GlobalFromSelection
                 \ :<C-u>let g:EXtend_reg_save=@"<CR>
-                \ :call EXtend#pos#Save()<CR>
+                \ :call EXtend#winstate#Save()<CR>
                 \ gvy:<C-u>set opfunc=<SID>OperatorGlobalFromSelection<CR>g@
 xnoremap <silent> <Plug>GlobalFromSelectionEntire
                 \ :<C-u>let g:EXtend_reg_save=@"<CR>
-                \ :call EXtend#pos#Save()<CR>
+                \ :call EXtend#winstate#Save()<CR>
                 \ gvy:<C-u>call <SID>OperatorGlobalFromSelectionEntire()<CR>
 
 
 nnoremap <silent> <Plug>VGlobalNormal
-                \ :<C-u>call EXtend#pos#Save()
+                \ :<C-u>call EXtend#winstate#Save()
                 \ <bar>set opfunc=<SID>OperatorVGlobal<CR>g@
 xnoremap <silent> <Plug>VGlobalVisual
-                \ <Esc>:call EXtend#pos#Save()<CR>
+                \ <Esc>:call EXtend#winstate#Save()<CR>
                 \ gv:<C-u>call <SID>OperatorVGlobal('selection', 1)<CR>
 nnoremap <silent> <Plug>VGlobalOneLine
-                \ :<C-u>call EXtend#pos#Save()
+                \ :<C-u>call EXtend#winstate#Save()
                 \ <bar>call <SID>OperatorVGlobal('singleline', 1)<CR>
 nnoremap <silent> <Plug>VGlobalEntire
-                \ :<C-u>call EXtend#pos#Save()
+                \ :<C-u>call EXtend#winstate#Save()
                 \ <bar>call <SID>OperatorVGlobalEntire()<CR>
 
 nnoremap <silent> <Plug>VGlobalWordNormal
-                \ :<C-u>call EXtend#pos#Save()
+                \ :<C-u>call EXtend#winstate#Save()
                 \ <bar>set opfunc=<SID>OperatorVGlobalWord<CR>g@
 xnoremap <silent> <Plug>VGlobalWordVisual
-                \ <Esc>:call EXtend#pos#Save()<CR>
+                \ <Esc>:call EXtend#winstate#Save()<CR>
                 \ gv:<C-u>call <SID>OperatorVGlobalWord('selection', 1)<CR>
 nnoremap <silent> <Plug>VGlobalWordOneLine
-                \ :<C-u>call EXtend#pos#Save()
+                \ :<C-u>call EXtend#winstate#Save()
                 \ <bar>call <SID>OperatorVGlobalWord('singleline', 1)<CR>
 nnoremap <silent> <Plug>VGlobalWordEntire
-                \ :<C-u>call EXtend#pos#Save()
+                \ :<C-u>call EXtend#winstate#Save()
                 \ <bar>call <SID>OperatorVGlobalWordEntire()<CR>
 
 xnoremap <silent> <Plug>VGlobalFromSelection
                 \ :<C-u>let g:EXtend_reg_save=@"<CR>
-                \ :call EXtend#pos#Save()<CR>
+                \ :call EXtend#winstate#Save()<CR>
                 \ gvy:<C-u>set opfunc=<SID>OperatorSubstituteFromSelection<CR>g@
 xnoremap <silent> <Plug>VGlobalFromSelectionEntire
                 \ :<C-u>let g:EXtend_reg_save=@"<CR>
-                \ :call EXtend#pos#Save()<CR>
+                \ :call EXtend#winstate#Save()<CR>
                 \ gvy:<C-u>call <SID>OperatorVGlobalFromSelectionEntire()<CR>
 
 " =====[ Default mappings ]=====
@@ -208,7 +208,7 @@ endif
 function! s:NormalOperator(command, entire, type, argc)
     let l:range = (a:entire ? '%' : s:GetLines(a:type, a:argc))
     call EXtend#ExCommandInRange(a:command, l:range)
-    call EXtend#pos#Restore()
+    call EXtend#winstate#Restore()
 endfunction
 
 function! s:OperatorSubstitute(type, ...)
@@ -239,9 +239,9 @@ endfunction
 " Operators for word and WORD
 function! s:WordOperator(command, entire, type, argc)
     let l:range = (a:entire ? '%' : s:GetLines(a:type, a:argc))
-    call EXtend#pos#Restore() " First restore is to get <cword> correctly
+    call EXtend#winstate#Restore() " First restore is to get <cword> correctly
     call EXtend#ExCommandInRange(a:command, l:range, expand('<cword>'), 1)
-    call EXtend#pos#Restore()
+    call EXtend#winstate#Restore()
 endfunction
 
 function! s:OperatorSubstituteWord(type, ...) abort
@@ -275,7 +275,7 @@ function! s:FromSelectionOperator(command, entire, type, args)
     let l:range = (a:entire ? '%' : s:GetLines(a:type, a:args))
 
     call EXtend#ExCommandInRange(a:command, l:range, @", 0)
-    call EXtend#pos#Restore()
+    call EXtend#winstate#Restore()
     let @" = g:EXtend_reg_save
 endfunction
 

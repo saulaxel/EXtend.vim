@@ -11,30 +11,47 @@
                    __________________________________________
 
 
-Some commands like :substitute and :global are extremely powerfull, but with
-that great power comes a lot of trouble. The dealing with regular expressions,
-with search of complete words or free text, the case-sensitiveness, magicness,
-line ranges that we can't visualize and most importantly, the fact that these
-commands can't be applied as if they were operators are just some of the
-points that make these Ex commands so awkward to use in the common workflow.
+We all like operators. We can use a single text object, i.e., "ap" (around
+paragraph) to compose commands that delete, copy or indent just the text in
+that paragraph. But, what about the ex commands? These obligate us to first
+select the text just to have to write the full command after that.
 
-In response of all that concerns comes EXtend.vim, that provides the
-functionality of those venerable Ex commands packed into easy to use
-operators, a highlight system that provides visual feedback by shows the range
-of operation and the text to be operated in the fly and an steroids-provided
-input line with two virtual cursors: one for editing the text you type as in
-any other input line, and a second one  that moves over the text of the buffer
-and lets you pick up words from it and insert them on the input line.
+How to fix that? With this plugin that has operators as <Leader>s that wrap
+the functionality of Ex commands (in this case, :substitute). New when you
+ever need to replace "leviosar" for "leviosa" in a while paragraph you can
+just:
 
-Take all that and add the ability to customize every color, keystroke and
-mapping to your own needs and you got a tool that can easily merge into your
-vim workflow and make your life much easier.
+    <Leader>sapleviosar<Enter>leviosa<Enter>
+
+![Example 1 paragraph substitution](./screenshots/paragraph_substitute1.gif)
+
+Or you can take advantage of the cursor position to insert the word under with
+the operator <Leader>sw and the command line object insertion <C-r><C-w>:
+
+    <Leader>swap<Enter><C-r><C-w><C-h><Enter>
+
+![Example 2 paragraph substitution](./screenshots/paragraph_substitute2.gif)
+
+You may even want to add a colon to all the lines not containing brackets,
+which you can do with:
+
+    <Leader>va{{\|}<Enter>norm A;
+
+![Example 3 add semicolon](./screenshots/add_semicolon.gif)
 
 Installation
 ------------------------------------------------------------------------------
 
-Just add the plugin 'saulaxel/EXtend.vim' via your favorite plugin manager.
-Example:
+Pathogen:
+
+    cd ~/.vim/bundle
+    git clone https://github.com/saulaxel/EXtend.vim'
+
+
+Other plugin managers:
+
+Add the plugin 'saulaxel/EXtend.vim' with the way specified in the
+plugin manager. Example:
 
     Plug 'saulaxel/EXtend.vim'
 
@@ -48,4 +65,6 @@ Showcase
 ![Move operation range](./screenshots/move_range.gif)
 ![Filter lines](./screenshots/filter.gif)
 ![Groups](./screenshots/complex_substitute.gif)
+
+------------------------------------------------------------------------------
 vim:tw=78:et:spell:spl=en

@@ -32,7 +32,6 @@ function! EXtend#registers#GetRegisterOrCompletion() abort
     endif
 
     if l:reg =~# '[0-9A-Za-z"%#:-\."]'
-        call append('.', l:reg . 'XXXXXXXX')
         return getreg(l:reg)
     endif
 
