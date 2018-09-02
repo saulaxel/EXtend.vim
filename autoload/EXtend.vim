@@ -246,7 +246,13 @@ function! EXtend#ExCommandInRange(command, initial_range, ...) abort
         let l:full_command .= '&e' . (&gdefault ? '' : 'g')
     endif
 
-    execute l:full_command
+    try
+        execute l:full_command
+    catch
+        echohl ErrorMsg
+        echo v:exception
+        echohl Normal
+    endtry
 
     call s:RestoreHighlightState(l:old_hlsearch)
 endfunction

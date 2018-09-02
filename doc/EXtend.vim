@@ -890,6 +890,7 @@ doubt into contacting me so I can give mention to your plugin.
 
     2018-09-02: v0.2.1
         - Delete remaining log message with a nonsensical text
+        - Handling errors in the execution of command with a try-catch
         - Now the entire window layout is restored instead of just the
           cursor position
         - Add a few example to the readme
