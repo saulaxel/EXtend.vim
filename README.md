@@ -11,13 +11,13 @@
                    __________________________________________
 
 
-We all like operators. We can use a single text object, i.e., "ap" (around
+We all like operators. We can use a single text object, i.e., `ap` (around
 paragraph) to compose commands that delete, copy or indent just the text in
-that paragraph. But, what about the ex commands? These obligate us to first
+that paragraph. But, what about the ex commands? These forces us to first
 select the text just to have to write the full command after that.
 
-How to fix that? With this plugin that has operators as <Leader\>s that wrap
-the functionality of Ex commands (in this case, :substitute). New when you
+How to fix that? With this plugin that has operators as `<Leader\>s` that wrap
+the functionality of Ex commands (in this case, `:substitute`). New when you
 ever need to replace "leviosar" for "leviosa" in a while paragraph you can
 just:
 
@@ -26,7 +26,7 @@ just:
 ![Example 1 paragraph substitution](./screenshots/paragraph_substitute1.gif)
 
 Or you can take advantage of the cursor position to insert the word under with
-the operator <Leader\>sw and the command line object insertion <C-r\><C-w\>:
+the operator `<Leader\>sw` and the command line object insertion `<C-r\><C-w\>`:
 
     <Leader>swap<Enter><C-r><C-w><C-h><Enter>
 
