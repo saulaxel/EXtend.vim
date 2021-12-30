@@ -1,0 +1,6 @@
+
+.class-with-style {
+  background-image:
+      radial-gradient(...), radial-gradient(...),
+      radial-gradient(...), radial-gradient(...);
+}

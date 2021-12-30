@@ -1,0 +1,11 @@
+Substitute all "/" by "|" in lines starting with "Path"
+
+Date: 2017/08/18
+Path /home/share/thing
+Path /home/me/thing
+Date: 2017/08/18
+Path /home/share/thing
+Date: 2017/08/18
+Path /home/share/thing
+Path /home/me/thing
+
